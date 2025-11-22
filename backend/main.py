@@ -60,4 +60,4 @@ if __name__ == "__main__":
     # Run the server using Uvicorn
     # host="0.0.0.0" makes it accessible from other machines (if needed)
     # port=8000 is the standard port for FastAPI
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
