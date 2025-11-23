@@ -1,9 +1,7 @@
-import os
 import time
-from dotenv import load_dotenv
-import google.generativeai as genai
 from rich.console import Console
 from rich.panel import Panel
+from backend.graph import app as graph_app
 
 # Initialize Rich Console for logging
 console = Console()
@@ -11,67 +9,51 @@ console = Console()
 def log_step(step: str, details: str, style: str = "bold blue"):
     """
     Helper function to log steps with Rich.
-    Creates a visually distinct panel in the terminal for each major action.
     """
     console.print(Panel(f"[{style}]{step}[/{style}]\n{details}", title="Agent Log", border_style=style))
 
-# [INIT] Load environment variables from .env file
-log_step("Initialization", "Loading environment variables...")
-load_dotenv()
-
-# [INIT] Check for API Key
-api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    log_step("Error", "GOOGLE_API_KEY not found!", style="bold red")
-    raise ValueError("GOOGLE_API_KEY not found")
-else:
-    log_step("Initialization", "API Key found.", style="bold green")
-
-# [INIT] Configure Gemini API
-try:
-    log_step("Configuration", "Configuring Google Gemini API...")
-    genai.configure(api_key=api_key)
-    
-    # Initialize the model
-    # We are using 'gemini-flash-latest' as it was verified to be available.
-    model = genai.GenerativeModel('gemini-flash-latest')
-    log_step("Configuration", "Model 'gemini-flash-latest' initialized successfully.", style="bold green")
-except Exception as e:
-    log_step("Error", f"Failed to configure Gemini: {e}", style="bold red")
-    raise
-
-def generate_response(prompt: str) -> str:
+def run_multi_agent_system(prompt: str) -> dict:
     """
-    Generates a response from the Gemini model for the given prompt.
-    Includes intensive logging of the process.
+    Runs the Multi-Agent Content System using LangGraph.
     
     Flow:
-    1. Logs the start of the request and the received prompt.
-    2. Sends the prompt to Google Gemini via the SDK.
-    3. Measures the time taken for the API call.
-    4. Logs the successful response and the duration.
-    5. Returns the text content of the response.
+    1. Initializes the graph state with the user request.
+    2. Invokes the graph.
+    3. Collects outputs from all agents.
+    4. Returns a structured dictionary with all content pieces.
     """
     start_time = time.time()
-    
-    # [LOGGING] Log the received prompt
-    log_step("Action", f"Received prompt: '{prompt}'", style="bold yellow")
+    log_step("Action", f"Starting Multi-Agent System for: '{prompt}'", style="bold yellow")
 
     try:
-        # [STEP 1] Call the Google Gemini API
-        log_step("API Call", "Sending request to Google Gemini...", style="bold cyan")
-        response = model.generate_content(prompt)
+        # [STEP 1] Initialize State
+        initial_state = {
+            "request": prompt,
+            "logs": []
+        }
+        
+        # [STEP 2] Invoke Graph
+        log_step("Orchestration", "Invoking LangGraph Workflow...", style="bold cyan")
+        final_state = graph_app.invoke(initial_state)
         
         # [TIMING] Calculate duration
         end_time = time.time()
         duration = end_time - start_time
         
-        # [LOGGING] Log success and details
-        log_step("API Response", f"Received response in {duration:.2f}s", style="bold green")
-        log_step("Content", f"Response text: {response.text[:100]}...", style="dim")
+        # [LOGGING] Log success
+        log_step("Success", f"Workflow completed in {duration:.2f}s", style="bold green")
         
-        return response.text
+        # [STEP 3] Return Structured Output
+        return {
+            "research_data": final_state.get("research_data", ""),
+            "content_plan": final_state.get("content_plan", ""),
+            "blog_post": final_state.get("blog_post", ""),
+            "linkedin_post": final_state.get("linkedin_post", ""),
+            "image_prompt": final_state.get("image_prompt", ""),
+            "image_url": final_state.get("image_url", ""),
+            "logs": final_state.get("logs", [])
+        }
+        
     except Exception as e:
-        # [ERROR HANDLING] Log any API errors
-        log_step("Error", f"Error during generation: {e}", style="bold red")
-        return f"Error: {e}"
+        log_step("Error", f"Workflow failed: {e}", style="bold red")
+        raise e

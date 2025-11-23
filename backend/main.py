@@ -25,30 +25,30 @@ def read_root():
 @app.post("/query")
 def query_agent(request: QueryRequest):
     """
-    Endpoint to process user queries via the AI agent.
+    Endpoint to process user queries via the Multi-Agent System.
     
     Flow:
     1. Receives a POST request with a user query.
     2. Logs the receipt of the query.
-    3. Calls the `agent.generate_response` function to get the AI's answer.
-    4. Logs the successful receipt of the response from the agent.
-    5. Returns the response to the client (Frontend).
+    3. Calls the `agent.run_multi_agent_system` function.
+    4. Logs the successful receipt of the structured response.
+    5. Returns the structured response (Research, Plan, Content, Images) to the client.
     """
     # [LOGGING] Log the incoming query to the console
     console.print(f"[bold magenta]Backend:[/bold magenta] Received query: '{request.query}'")
     
     try:
         # [STEP 1] Delegate the query processing to the Agent module
-        console.print("[bold magenta]Backend:[/bold magenta] Delegating to Agent...")
+        console.print("[bold magenta]Backend:[/bold magenta] Delegating to Multi-Agent System...")
         
-        # This function call triggers the interaction with Google Gemini
-        response = agent.generate_response(request.query)
+        # This function call triggers the LangGraph workflow
+        response_data = agent.run_multi_agent_system(request.query)
         
         # [STEP 2] Log success after receiving the response
-        console.print("[bold magenta]Backend:[/bold magenta] Response received from Agent.")
+        console.print("[bold magenta]Backend:[/bold magenta] Workflow completed successfully.")
         
         # [STEP 3] Return the result as a JSON response
-        return {"response": response}
+        return response_data
         
     except Exception as e:
         # [ERROR HANDLING] Log any errors and return a 500 status code

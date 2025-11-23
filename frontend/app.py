@@ -33,7 +33,7 @@ if st.button("Ask Agent", type="primary"):
         log_ui_action("Action", f"User submitted query: '{query}'")
         
         # [UI FEEDBACK] Show a spinner while waiting for the response
-        with st.spinner("Thinking..."):
+        with st.spinner("Thinking... (This may take a moment as multiple agents are working)"):
             try:
                 # [API CALL] Send the query to the Backend API
                 log_ui_action("API Call", "Sending request to backend...")
@@ -42,14 +42,43 @@ if st.button("Ask Agent", type="primary"):
                 # Check if the request was successful (HTTP 200)
                 if response.status_code == 200:
                     result = response.json()
-                    answer = result.get("response", "No response received.")
                     
                     # [LOGGING] Log success
                     log_ui_action("Success", "Received response from backend")
                     
-                    # [UI DISPLAY] Show the response to the user
-                    st.success("Response:")
-                    st.markdown(answer)
+                    # [UI DISPLAY] Show the response in tabs
+                    st.success("Content Generation Complete!")
+                    
+                    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Research", "Strategy", "Blog Post", "LinkedIn Post", "Visuals"])
+                    
+                    with tab1:
+                        st.header("Deep Research")
+                        st.markdown(result.get("research_data", "No research data available."))
+                        
+                    with tab2:
+                        st.header("Content Strategy")
+                        st.markdown(result.get("content_plan", "No content plan available."))
+                        
+                    with tab3:
+                        st.header("SEO Blog Post")
+                        st.markdown(result.get("blog_post", "No blog post available."))
+                        
+                    with tab4:
+                        st.header("LinkedIn Post")
+                        st.markdown(result.get("linkedin_post", "No LinkedIn post available."))
+                        
+                    with tab5:
+                        st.header("Visual Concepts")
+                        st.subheader("Image Prompt")
+                        st.code(result.get("image_prompt", "No prompt available."))
+                        if result.get("image_url"):
+                            st.image(result.get("image_url"), caption="Generated Visual Concept")
+
+                    # Show logs in an expander
+                    with st.expander("View Agent Logs"):
+                        for log in result.get("logs", []):
+                            st.text(log)
+
                 else:
                     # [ERROR HANDLING] Handle non-200 responses
                     log_ui_action("Error", f"Backend returned status {response.status_code}")

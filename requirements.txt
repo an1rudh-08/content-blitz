@@ -8,3 +8,7 @@ fastapi
 uvicorn
 streamlit
 requests
+duckduckgo-search
+pillow
+langchain-community
+google-adk
