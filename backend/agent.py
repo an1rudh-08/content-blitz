@@ -51,7 +51,9 @@ def run_multi_agent_system(prompt: str) -> dict:
             "linkedin_post": final_state.get("linkedin_post", ""),
             "image_prompt": final_state.get("image_prompt", ""),
             "image_url": final_state.get("image_url", ""),
-            "logs": final_state.get("logs", [])
+            "image_url": final_state.get("image_url", ""),
+            "logs": final_state.get("logs", []),
+            "node_details": final_state.get("node_details", [])
         }
         
     except Exception as e:

@@ -76,8 +76,17 @@ if st.button("Ask Agent", type="primary"):
 
                     # Show logs in an expander
                     with st.expander("View Agent Logs"):
-                        for log in result.get("logs", []):
-                            st.text(log)
+                        if result.get("node_details"):
+                            for detail in result.get("node_details", []):
+                                st.markdown(f"### {detail['node']}")
+                                st.markdown("**Input:**")
+                                st.code(detail['input'])
+                                st.markdown("**Output:**")
+                                st.code(detail['output'])
+                                st.divider()
+                        else:
+                            for log in result.get("logs", []):
+                                st.text(log)
 
                 else:
                     # [ERROR HANDLING] Handle non-200 responses

@@ -12,3 +12,4 @@ duckduckgo-search
 pillow
 langchain-community
 google-adk
+openai
